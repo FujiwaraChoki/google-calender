@@ -8,9 +8,7 @@ const {
   Tray,
 } = require("electron");
 const { windowStateKeeper } = require("./stateKeeper");
-// const isDevelopment = process.env.NODE_ENV !== "production";
 const isDevelopment = require("electron-is-dev");
-const { readFileSync } = require("fs");
 
 const iconPath = path.join(
   isDevelopment ? process.cwd() + "/resources" : process.resourcesPath,
@@ -20,21 +18,10 @@ console.log(`iconPath: ${iconPath}`);
 
 const CALENDER_HOME = "https://calendar.google.com/calendar/u/0/r/week";
 
-const setHomeCss = (mainWindow) => {
-  const stylesPath = path.join(
-    isDevelopment ? process.cwd() + "/resources" : process.resourcesPath,
-    "styles.css"
-  );
-  const styles = readFileSync(stylesPath).toString();
-  mainWindow.webContents.insertCSS(styles);
-  console.log(`CSS Set`);
-};
-
-// modify your existing createWindow() function
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
-    height: 480,
-    width: 320,
+    height: 800,
+    width: 1100,
 
     maximizable: false,
     minimizable: false,
@@ -52,25 +39,18 @@ const createWindow = () => {
     return { action: "deny" };
   });
 
-  mainWindow.webContents.on("will-navigate", (e, url) => {
-    console.log(`will-navigate`, url);
-    // if (url.includes(`https://accounts.google.com/CheckCookie`)) {
-    //     setTimeout(() => {
-    //         mainWindow.loadURL(CALENDER_HOME)
-    //     }, 1500)
-    // }
-    if (url === CALENDER_HOME || url.includes(CALENDER_HOME)) {
-      setHomeCss(mainWindow);
-    }
-  });
-
-  setHomeCss(mainWindow);
   windowStateKeeper("main")
     .then((mwk) => {
       if (mwk) {
         const { x, y, width, height } = mwk;
         if (x !== undefined && y !== undefined && width && height) {
-          mainWindow.setBounds({ x, y, width, height });
+          mainWindow.setBounds({
+            // set in middle
+            x: (x + width) / 2,
+            y: (y + height) / 2,
+            width: 1100,
+            height: 800,
+          });
         }
         mwk.track(mainWindow);
       }
@@ -95,7 +75,6 @@ const createWindow = () => {
     mainWindow.focus();
   } else {
     app.on("second-instance", (event, commandLine, workingDirectory) => {
-      // Someone tried to run a second instance, we should focus our window.
       if (mainWindow) {
         if (mainWindow.isMinimized()) mainWindow.restore();
         mainWindow.focus();
@@ -107,21 +86,14 @@ const createWindow = () => {
 };
 
 const createTray = (mainWindow) => {
-  // Load your tray icon image
   const trayIcon = nativeImage.createFromPath(iconPath);
 
-  // Create the tray
   const tray = new Tray(trayIcon);
 
-  // Create a context menu
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "Reload",
       click: () => {
-        // mainWindow.reload()
-        // mainWindow.loadURL(CALENDER_HOME);
-        // setHomeCss(mainWindow)
-
         app.relaunch();
         app.exit();
       },
@@ -147,14 +119,11 @@ const createTray = (mainWindow) => {
     },
   ]);
 
-  // Set the context menu for the tray
   tray.setContextMenu(contextMenu);
 
-  // Add a tooltip (optional)
   tray.setToolTip("GCW");
   tray.setTitle("GCW");
 
-  // Show the tray icon
   tray.on("click", () => {
     mainWindow.show();
   });
@@ -171,8 +140,6 @@ app.on("window-all-closed", () => {
 });
 
 app.on("activate", () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
