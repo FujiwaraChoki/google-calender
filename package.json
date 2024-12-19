@@ -5,13 +5,13 @@
   "description": "An unofficial google calendar desktop widget for Windows, Mac and Linux",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^25.5.0",
-    "electron-builder": "^24.6.3",
-    "nodemon": "^3.0.1"
+    "electron": "^25.9.8",
+    "electron-builder": "^24.13.3",
+    "nodemon": "^3.1.9"
   },
   "dependencies": {
     "electron-is-dev": "^2.0.0",
-    "electron-settings": "^4.0.2"
+    "electron-settings": "^4.0.4"
   },
   "scripts": {
     "start": "nodemon --exec \"electron . node --inspect\"",
